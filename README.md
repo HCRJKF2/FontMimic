@@ -18,7 +18,14 @@ Font Mimic learns a reusable style representation from text images, then generat
 > Most of this codebase was developed with [OpenAI Codex](https://openai.com/codex/).
 
 > [!NOTE]
-> The current release supports `a-z` and `A-Z`. Digits, punctuation, and eventually Chinese characters are possible future extensions. Model checkpoints are not included; train the two stages below before running export.
+> The current release supports `a-z` and `A-Z`. Digits, punctuation, and eventually Chinese characters are possible future extensions. Model checkpoints are distributed separately from the Git repository; download them below or train the two stages yourself.
+
+## Pretrained checkpoints
+
+- **Baidu Netdisk:** [download](https://pan.baidu.com/s/16Yv6bqvLe3aNgMN6CxTZzQ?pwd=gyhk) — extraction code: `gyhk`
+- **Google Drive:** [download](https://drive.google.com/drive/folders/1g0N-G40FCwub-0kV3bFwkoFn0zQJ4sqd?usp=sharing)
+
+After downloading, pass the generator checkpoint to `generate_font.py` with `--checkpoint`. If the style-encoder checkpoint is not found at the path recorded in the generator checkpoint, provide its downloaded path with `--style-checkpoint`.
 
 ## Results
 

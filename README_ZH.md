@@ -18,7 +18,14 @@ Font Mimic 从完整文字图片中提取可复用的字体风格表示，再生
 > 本项目代码主要在 [OpenAI Codex](https://openai.com/codex/) 中完成。
 
 > [!NOTE]
-> 当前版本仅支持 `a-z` 与 `A-Z`。后续可考虑加入数字、标点，甚至中文字符。仓库不包含训练好的模型权重，运行导出前需要完成下述两阶段训练。
+> 当前版本仅支持 `a-z` 与 `A-Z`。后续可考虑加入数字、标点，甚至中文字符。模型权重不随 Git 仓库提交，可从下方单独下载，也可以自行完成两阶段训练。
+
+## 预训练权重
+
+- **百度网盘：** [下载地址](https://pan.baidu.com/s/16Yv6bqvLe3aNgMN6CxTZzQ?pwd=gyhk) — 提取码：`gyhk`
+- **Google Drive：** [下载地址](https://drive.google.com/drive/folders/1g0N-G40FCwub-0kV3bFwkoFn0zQJ4sqd?usp=sharing)
+
+下载后，通过 `generate_font.py` 的 `--checkpoint` 参数传入生成器权重。如果生成器 checkpoint 中记录的风格编码器路径已经失效，请通过 `--style-checkpoint` 指定下载后的风格编码器权重。
 
 ## 效果展示
 
