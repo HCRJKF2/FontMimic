@@ -1,0 +1,13 @@
+numpy
+Pillow
+PyYAML
+matplotlib
+tensorboard
+torch
+torchvision
+diffusers
+fonttools
+opencv-python-headless
+nltk==3.8.1
+pytorch-lightning==2.2.0.post0
+timm==0.9.16

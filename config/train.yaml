@@ -1,0 +1,159 @@
+dataset:
+  # Directory layout: font_root_path/font/*.{ttf,otf,ttc,otc} and wordlist.txt.
+  font_root_path: ./data/fonts_dataset
+  samples_per_font: 2
+  # N target letters generated for every font item in a batch.
+  letters_per_font: 12
+  characters: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+  letter_image_size: 256
+  letter_size: 180
+  max_glyph_attempts: 104
+  crop_image_size: 128
+  bbox_padding: 5
+  bbox_padding_ratio: 0.08
+  foreground_threshold: 0.95
+
+  # One reference image is rendered with the same pipeline as FontStyleDataset.
+  reference:
+    layout_probability: 0.70
+    characters: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    min_font_size: 18
+    max_font_size: 90
+    patch_size: 16
+    min_short_side: 192
+    max_long_side: 512
+    max_pixels: 262144
+    aspect_ratio_range: [0.5, 2.0]
+    mean: 0.5
+    std: 0.5
+    recursive_fonts: true
+    strict_fonts: false
+    max_render_attempts: 8
+
+loader:
+  # Batch size counts fonts. Actual GAN image count is batch_size * letters_per_font.
+  batch_size: 16
+  shuffle: true
+  num_workers: 4
+  pin_memory: false
+  drop_last: false
+  persistent_workers: false
+  prefetch_factor: 2
+
+collator:
+  patch_size: 16
+  keep_reference_images: true
+
+model:
+  style_encoder:
+    # Supports font_style_encoder.pt ("model") and pretraining checkpoints
+    # ("teacher" or "student"). The network is always eval + requires_grad_(False).
+    checkpoint: ./outputs/font_style_vit_5/checkpoints/epoch_0080.pt
+    state_key: teacher
+    strict: true
+    # Normally read from checkpoint.model_config. Set a mapping here to override.
+    architecture: null
+
+  generator:
+    num_letters: 52
+    latent_dim: 128
+    style_embedding_dim: 384
+    letter_embedding_dim: 64
+    channels: [512, 512, 512, 512, 256, 256, 256, 256, 128, 128, 128, 128, 64, 64, 32]
+    ups: [false, false, true, false, false, false, true, false, false, false, true, false, true, true]
+    image_channels: 1
+    # FiLM modulation after every GroupNorm in the generator.
+    use_style_affine: true
+    letter_affine_layers: [0, 1, 2, 3, 4, 5]
+    predict_pos_args:
+      hidden_dims: [256, 256, 256, 128, 128, 64]
+      dropout: 0.1
+
+  discriminator:
+    channels: [16, 32, 64, 128, 256, 512]
+    image_channels: 1
+
+  # Frozen mixed-case OCR teacher. With source=github, Torch Hub downloads the
+  # official repository and pretrained weights into its normal cache. For an
+  # offline machine, clone PARSeq first and set repo_or_dir + source=local.
+  parseq:
+    repo_or_dir: baudm/parseq
+    source: github
+    model_name: parseq
+    pretrained: true
+    # NAR without refinement keeps real/generated logits position-aligned and
+    # avoids conditioning later positions on different greedy predictions.
+    decode_ar: false
+    refine_iters: 0
+    # Match generated logits to detached real-image logits. Supported losses:
+    # kl (recommended), mse, smooth_l1.
+    logits_loss: kl
+    temperature: 1.0
+    # The 12 glyphs are compared as three left-to-right four-character rows.
+    characters_per_line: 4
+
+# Each font's N generated 256x256 images are first tiled with a column count
+# sampled once per batch from this inclusive range. Real and generated grids use
+# the same sampled layout, then are differentiably resized before patchification.
+grid_columns: [3, 5]
+
+losses:
+  d_adversarial_weight: 1.0
+  g_adversarial_weight: 1.0
+  # PARSeq distillation loss between generated and corresponding real rows.
+  g_letter_weight: 0.25
+  pixel_weight: 3.0
+  foreground_weight: 3.0
+  # Match local glyph contours. Supported operators: sobel, scharr.
+  edge_weight: 1.0
+  edge_operator: scharr
+  # FontStyleViT patch-token reconstruction loss.
+  perceptual_content_weight: 0.25
+  perceptual_content_type: l1
+  # Gram-matrix loss over FontStyleViT patch-token channels.
+  perceptual_style_weight: 0.25
+  perceptual_style_type: l1
+  style_weight: 1.0
+  # cosine, mse, or cosine_mse
+  style_type: cosine
+  position_weight: 2.0
+
+optimizer:
+  generator:
+    name: Adam
+    lr: 0.0002
+    betas: [0.9, 0.999]
+  discriminator:
+    name: Adam
+    lr: 0.0001
+    betas: [0.9, 0.999]
+
+scheduler:
+  generator:
+    name: CosineAnnealingLR
+    interval: epoch
+    T_max: 800
+    eta_min: 0.0002
+  discriminator:
+    name: CosineAnnealingLR
+    interval: epoch
+    T_max: 800
+    eta_min: 0.0001
+
+train:
+  output_dir: ./outputs/font_cgan_parseq
+  epochs: 800
+  device: cuda
+  seed: 42
+  amp: true
+  amp_dtype: float16
+  allow_tf32: true
+  cudnn_benchmark: true
+  d_every: 2
+  ema_decay: 0.999
+  gradient_clip_norm: null
+  log_every: 20
+  sample_every: 1000
+  sample_font_count: 2
+  checkpoint_every_epochs: 20
+  resume: null

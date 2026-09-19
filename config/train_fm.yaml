@@ -1,0 +1,150 @@
+dataset:
+  # Directory layout: font_root_path/font/*.{ttf,otf,ttc,otc} and wordlist.txt.
+  font_root_path: ./data/fonts_dataset
+  samples_per_font: 2
+  # N target letters generated for every font item in a batch.
+  letters_per_font: 12
+  characters: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+  letter_image_size: 256
+  letter_size: 180
+  max_glyph_attempts: 104
+  crop_image_size: 128
+  bbox_padding: 5
+  bbox_padding_ratio: 0.08
+  foreground_threshold: 0.95
+
+  # One reference image is rendered with the same pipeline as FontStyleDataset.
+  reference:
+    layout_probability: 0.70
+    characters: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    min_font_size: 18
+    max_font_size: 90
+    patch_size: 16
+    min_short_side: 192
+    max_long_side: 512
+    max_pixels: 262144
+    aspect_ratio_range: [0.5, 2.0]
+    mean: 0.5
+    std: 0.5
+    recursive_fonts: true
+    strict_fonts: false
+    max_render_attempts: 8
+
+loader:
+  # Batch size counts fonts; image count is batch_size * letters_per_font.
+  # Position mode encodes 128x128 glyph crops into VAE latents for flow matching.
+  batch_size: 16
+  shuffle: true
+  num_workers: 4
+  pin_memory: false
+  drop_last: false
+  persistent_workers: false
+  prefetch_factor: 2
+
+collator:
+  patch_size: 16
+  keep_reference_images: true
+
+model:
+  # Frozen SDXL VAE. Grayscale glyphs are repeated to RGB before encoding and
+  # decoded RGB endpoints are converted back to grayscale for pixel-space loss.
+  vae:
+    pretrained_model_name_or_path: ./models/sdxl-vae
+
+  style_encoder:
+    checkpoint: ./outputs/font_style_vit_5/checkpoints/epoch_0080.pt
+    state_key: teacher
+    strict: true
+    architecture: null
+
+  flow_model:
+    # DiT over 16x16 SDXL-VAE latents (128px crop / 8x VAE downsampling).
+    image_size: 16
+    patch_size: 1
+    in_channels: 4
+    hidden_size: 512
+    depth: 12
+    num_heads: 8
+    mlp_ratio: 4.0
+    dropout: 0.1
+    num_letters: 52
+    letter_embedding_dim: 64
+    style_embedding_dim: 384
+    timestep_frequency_size: 256
+    predict_pos_args:
+      hidden_dims: [256, 256, 256, 128, 128, 64]
+      dropout: 0.1
+
+  # Frozen mixed-case OCR teacher used to distill the generated endpoint toward
+  # the corresponding real glyph rows.
+  parseq:
+    repo_or_dir: baudm/parseq
+    source: github
+    model_name: parseq
+    pretrained: true
+    decode_ar: false
+    refine_iters: 0
+    logits_loss: kl
+    temperature: 1.0
+    characters_per_line: 4
+
+# Each font's predicted glyph endpoints are tiled before frozen style encoding.
+grid_columns: 4
+
+losses:
+  # Straight latent flow matching: ||v_theta(x_t,t,c) - (x_1-x_0)||^2.
+  flow_weight: 2.0
+  time_min: 0.0
+  time_max: 1.0
+  # uniform, or high_noise. high_noise samples smaller t values more often.
+  time_sampling: uniform
+  # Used by high_noise; larger values put more probability near t=0.
+  time_sampling_power: 2.0
+  # Euler steps used to predict z_1, which is decoded for pixel-space losses.
+  denoising_steps: 1
+  # The remaining losses mirror train.py's non-adversarial generator losses.
+  letter_weight: 0.2
+  pixel_weight: 0.75
+  foreground_weight: 3.0
+  edge_weight: 0.25
+  edge_operator: scharr
+  perceptual_content_weight: 0.1
+  perceptual_content_type: l1
+  perceptual_style_weight: 0.1
+  perceptual_style_type: l1
+  style_weight: 0.5
+  # cosine, mse, or cosine_mse
+  style_type: cosine
+  position_weight: 2.0
+
+optimizer:
+  flow_model:
+    name: AdamW
+    lr: 0.0001
+    betas: [0.9, 0.95]
+    weight_decay: 0.01
+
+scheduler:
+  flow_model:
+    name: CosineAnnealingLR
+    interval: epoch
+    T_max: 800
+    eta_min: 0.0001
+
+train:
+  output_dir: ./outputs/font_fm
+  epochs: 800
+  device: cuda
+  seed: 42
+  amp: true
+  amp_dtype: float16
+  allow_tf32: true
+  cudnn_benchmark: true
+  gradient_clip_norm: 3.0
+  log_every: 20
+  sample_every: 1000
+  sample_font_count: 2
+  sampling_steps: 20
+  sampling_method: euler
+  checkpoint_every_epochs: 20
+  resume: null

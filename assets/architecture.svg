@@ -1,0 +1,215 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="930" viewBox="0 0 1600 930" role="img" aria-labelledby="title desc">
+  <title id="title">Font Mimic training and inference architecture</title>
+  <desc id="desc">Three-stage architecture covering self-supervised FontStyleViT pretraining, conditional GAN training, and TTF font export.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 z" fill="#35556f"/>
+    </marker>
+    <marker id="arrowTeal" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 z" fill="#008c8c"/>
+    </marker>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#163047" flood-opacity="0.10"/>
+    </filter>
+    <style>
+      .title { font: 700 30px Inter, "Segoe UI", Arial, sans-serif; fill: #12344d; }
+      .stage { font: 700 24px Inter, "Segoe UI", Arial, sans-serif; fill: #12344d; }
+      .label { font: 600 18px Inter, "Segoe UI", Arial, sans-serif; fill: #17344a; text-anchor: middle; dominant-baseline: middle; }
+      .small { font: 500 15px Inter, "Segoe UI", Arial, sans-serif; fill: #4d6475; text-anchor: middle; dominant-baseline: middle; }
+      .tiny { font: 600 13px Inter, "Segoe UI", Arial, sans-serif; fill: #617786; text-anchor: middle; dominant-baseline: middle; }
+      .inverse { fill: #ffffff; }
+      .pill { font: 700 16px Inter, "Segoe UI", Arial, sans-serif; fill: #7a2459; text-anchor: middle; dominant-baseline: middle; }
+      .arrow { fill: none; stroke: #35556f; stroke-width: 2.6; marker-end: url(#arrow); }
+      .teal-arrow { fill: none; stroke: #008c8c; stroke-width: 3; marker-end: url(#arrowTeal); }
+      .dash { fill: none; stroke: #9a6c18; stroke-width: 2.2; stroke-dasharray: 8 7; marker-end: url(#arrow); }
+      .node { filter: url(#shadow); }
+    </style>
+  </defs>
+
+  <rect width="1600" height="930" fill="#fffdf8"/>
+  <text x="54" y="46" class="title">Font Mimic — training and inference architecture</text>
+
+  <!-- Stage 1 -->
+  <rect x="34" y="72" width="1532" height="250" rx="24" fill="#eefafa" stroke="#8cd7d5" stroke-width="2"/>
+  <circle cx="72" cy="111" r="23" fill="#008c8c"/>
+  <text x="72" y="112" class="label inverse">1</text>
+  <text x="108" y="112" class="stage">Self-supervised style encoder pretraining</text>
+
+  <g class="node">
+    <rect x="70" y="164" width="150" height="92" rx="16" fill="#ffffff" stroke="#b9cbd6" stroke-width="2"/>
+    <text x="145" y="199" class="label">Font files</text>
+    <text x="145" y="228" class="small">TTF · OTF · TTC</text>
+  </g>
+  <path d="M220 210 H263" class="teal-arrow"/>
+  <g class="node">
+    <rect x="270" y="150" width="190" height="120" rx="16" fill="#ffffff" stroke="#b9cbd6" stroke-width="2"/>
+    <text x="365" y="188" class="label">Multi-crop</text>
+    <text x="365" y="214" class="label">text views</text>
+    <text x="365" y="244" class="small">variable resolution</text>
+  </g>
+  <path d="M460 210 H500" class="arrow"/>
+
+  <g class="node">
+    <rect x="510" y="142" width="224" height="64" rx="14" fill="#e8f2ff" stroke="#3b82d0" stroke-width="2"/>
+    <text x="622" y="174" class="label">Student FontStyleViT</text>
+    <rect x="510" y="226" width="224" height="64" rx="14" fill="#e8f2ff" stroke="#3b82d0" stroke-width="2"/>
+    <text x="622" y="258" class="label">EMA teacher</text>
+  </g>
+  <path d="M622 206 V223" class="dash"/>
+  <text x="682" y="216" class="tiny">EMA update</text>
+
+  <path d="M734 174 H784" class="arrow"/>
+  <path d="M734 258 H784" class="arrow"/>
+  <g class="node">
+    <rect x="792" y="132" width="124" height="52" rx="13" fill="#fbe8f3" stroke="#cc5795" stroke-width="2"/>
+    <text x="854" y="158" class="pill">MoCo</text>
+    <rect x="792" y="194" width="124" height="52" rx="13" fill="#fbe8f3" stroke="#cc5795" stroke-width="2"/>
+    <text x="854" y="220" class="pill">DINO</text>
+    <rect x="792" y="256" width="124" height="52" rx="13" fill="#fbe8f3" stroke="#cc5795" stroke-width="2"/>
+    <text x="854" y="282" class="pill">iBOT++</text>
+  </g>
+  <path d="M916 220 H1086" class="teal-arrow"/>
+  <text x="1000" y="197" class="tiny">joint self-supervised objectives</text>
+  <g class="node">
+    <rect x="1095" y="151" width="255" height="118" rx="22" fill="#d9f3ef" stroke="#008c8c" stroke-width="3"/>
+    <text x="1222" y="193" class="label">Pretrained</text>
+    <text x="1222" y="222" class="label">style encoder</text>
+    <rect x="1165" y="238" width="115" height="25" rx="12" fill="#008c8c"/>
+    <text x="1222" y="251" class="tiny inverse">frozen downstream</text>
+  </g>
+  <text x="1450" y="196" class="small">Reusable style</text>
+  <text x="1450" y="220" class="small">representation</text>
+
+  <!-- Stage 2 -->
+  <rect x="34" y="340" width="1532" height="340" rx="24" fill="#fff8e9" stroke="#f1c46d" stroke-width="2"/>
+  <circle cx="72" cy="379" r="23" fill="#d98b00"/>
+  <text x="72" y="380" class="label inverse">2</text>
+  <text x="108" y="380" class="stage">Conditional GAN training</text>
+
+  <g class="node">
+    <rect x="64" y="449" width="165" height="84" rx="15" fill="#ffffff" stroke="#b9cbd6" stroke-width="2"/>
+    <text x="146" y="477" class="label">Reference image</text>
+    <text x="146" y="506" class="small">word · line · paragraph</text>
+  </g>
+  <path d="M229 491 H270" class="teal-arrow"/>
+  <g class="node">
+    <rect x="279" y="438" width="190" height="105" rx="18" fill="#d9f3ef" stroke="#008c8c" stroke-width="2"/>
+    <text x="374" y="480" class="label">Frozen</text>
+    <text x="374" y="508" class="label">style encoder</text>
+  </g>
+  <path d="M469 491 H520" class="teal-arrow"/>
+  <g class="node">
+    <rect x="529" y="451" width="150" height="80" rx="15" fill="#ffffff" stroke="#8cd7d5" stroke-width="2"/>
+    <text x="604" y="478" class="label">Style</text>
+    <text x="604" y="506" class="label">embedding</text>
+  </g>
+
+  <g class="node">
+    <rect x="529" y="552" width="150" height="46" rx="13" fill="#edf4ff" stroke="#5a8fd8" stroke-width="2"/>
+    <text x="604" y="575" class="label">Letter ID</text>
+    <rect x="529" y="611" width="150" height="46" rx="13" fill="#f4f1ff" stroke="#8771c7" stroke-width="2"/>
+    <text x="604" y="634" class="label">Noise z</text>
+  </g>
+  <path d="M679 491 H727" class="arrow"/>
+  <path d="M679 575 H710 V525 H727" class="arrow"/>
+  <path d="M679 634 H704 V541 H727" class="arrow"/>
+  <g class="node">
+    <path d="M737 439 H907 L949 491 L907 543 H737 Z" fill="#ffe5af" stroke="#d98b00" stroke-width="3"/>
+    <text x="835" y="480" class="label">Conditional</text>
+    <text x="835" y="508" class="label">generator</text>
+  </g>
+  <path d="M949 491 H988" class="arrow"/>
+  <g class="node">
+    <rect x="997" y="444" width="120" height="94" rx="14" fill="#ffffff" stroke="#b9cbd6" stroke-width="2"/>
+    <text x="1057" y="475" class="label">Generated</text>
+    <text x="1057" y="503" class="label">glyph</text>
+    <text x="1057" y="526" class="tiny">256 × 256</text>
+  </g>
+  <g class="node">
+    <rect x="997" y="570" width="120" height="70" rx="14" fill="#ffffff" stroke="#b9cbd6" stroke-width="2"/>
+    <text x="1057" y="605" class="label">Real glyph</text>
+  </g>
+
+  <path d="M1117 474 H1155" class="arrow"/>
+  <path d="M1117 605 H1135 V510 H1155" class="arrow"/>
+  <g class="node">
+    <path d="M1164 442 H1294 L1334 491 L1294 540 H1164 Z" fill="#f9dceb" stroke="#c13f83" stroke-width="3"/>
+    <text x="1244" y="491" class="label">Discriminator</text>
+  </g>
+  <text x="1248" y="561" class="small">hinge adversarial loss</text>
+
+  <g class="node">
+    <rect x="1164" y="585" width="170" height="64" rx="15" fill="#e8f2ff" stroke="#3b82d0" stroke-width="2"/>
+    <text x="1249" y="606" class="label">Frozen PARSeq</text>
+    <text x="1249" y="632" class="small">OCR distillation</text>
+  </g>
+  <path d="M1117 510 H1138 V617 H1155" class="arrow"/>
+  <path d="M1117 605 H1155" class="arrow"/>
+
+  <g class="node">
+    <rect x="1372" y="426" width="160" height="228" rx="18" fill="#ffffff" stroke="#e1ae4f" stroke-width="2" stroke-dasharray="7 6"/>
+    <text x="1452" y="451" class="label">Generator losses</text>
+    <text x="1452" y="485" class="small">Adversarial</text>
+    <text x="1452" y="515" class="small">PARSeq / character</text>
+    <text x="1452" y="545" class="small">Style + perceptual</text>
+    <text x="1452" y="575" class="small">Pixel + edge</text>
+    <text x="1452" y="605" class="small">Glyph position</text>
+    <text x="1452" y="633" class="tiny">EMA export</text>
+  </g>
+  <path d="M1334 491 H1363" class="dash"/>
+  <path d="M1334 617 H1363" class="dash"/>
+
+  <!-- Stage 3 -->
+  <rect x="34" y="698" width="1532" height="206" rx="24" fill="#edf7ff" stroke="#83bfe9" stroke-width="2"/>
+  <circle cx="72" cy="737" r="23" fill="#1678bd"/>
+  <text x="72" y="738" class="label inverse">3</text>
+  <text x="108" y="738" class="stage">Inference and font export</text>
+
+  <g class="node">
+    <rect x="65" y="790" width="160" height="72" rx="14" fill="#ffffff" stroke="#b9cbd6" stroke-width="2"/>
+    <text x="145" y="814" class="label">Any text image</text>
+    <text x="145" y="842" class="small">printed or handwritten</text>
+  </g>
+  <path d="M225 826 H262" class="teal-arrow"/>
+  <g class="node">
+    <rect x="271" y="786" width="172" height="80" rx="16" fill="#d9f3ef" stroke="#008c8c" stroke-width="2"/>
+    <text x="357" y="813" class="label">Frozen style</text>
+    <text x="357" y="840" class="label">encoder</text>
+  </g>
+  <path d="M443 826 H480" class="arrow"/>
+  <g class="node">
+    <rect x="489" y="782" width="172" height="88" rx="16" fill="#f4f1ff" stroke="#8771c7" stroke-width="2"/>
+    <text x="575" y="808" class="label">Style + noise</text>
+    <text x="575" y="838" class="label">52 letter IDs</text>
+  </g>
+  <path d="M661 826 H698" class="arrow"/>
+  <g class="node">
+    <path d="M707 784 H837 L870 826 L837 868 H707 Z" fill="#ffe5af" stroke="#d98b00" stroke-width="2.5"/>
+    <text x="785" y="813" class="label">Conditional</text>
+    <text x="785" y="840" class="label">generator</text>
+  </g>
+  <path d="M870 826 H906" class="arrow"/>
+  <g class="node">
+    <rect x="915" y="784" width="145" height="84" rx="15" fill="#ffffff" stroke="#b9cbd6" stroke-width="2"/>
+    <text x="987" y="812" class="label">52 glyphs</text>
+    <text x="987" y="840" class="small">a–z · A–Z</text>
+  </g>
+  <path d="M1060 826 H1093" class="arrow"/>
+  <g class="node">
+    <rect x="1102" y="784" width="135" height="84" rx="15" fill="#ffffff" stroke="#d77b51" stroke-width="2"/>
+    <text x="1169" y="812" class="label">OpenCV</text>
+    <text x="1169" y="840" class="small">vector contours</text>
+  </g>
+  <path d="M1237 826 H1270" class="arrow"/>
+  <g class="node">
+    <rect x="1279" y="784" width="116" height="84" rx="15" fill="#ffffff" stroke="#677f91" stroke-width="2"/>
+    <text x="1337" y="814" class="label">fontTools</text>
+    <text x="1337" y="841" class="small">assemble</text>
+  </g>
+  <path d="M1395 826 H1428" class="teal-arrow"/>
+  <g class="node">
+    <rect x="1437" y="782" width="98" height="88" rx="16" fill="#d9f3ef" stroke="#008c8c" stroke-width="3"/>
+    <text x="1486" y="813" class="label">TTF</text>
+    <text x="1486" y="842" class="small">+ preview</text>
+  </g>
+</svg>
