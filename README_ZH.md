@@ -136,7 +136,7 @@ outputs/generated_fonts/
         └── ...
 ```
 
-详细导出参数、轮廓调节方法及故障排查请参阅 [`GENERATE_FONT_ZH.md`](GENERATE_FONT_ZH.md)。
+详细导出参数、轮廓调节方法及故障排查请参阅中文版文档 [`GENERATE_FONT_ZH.md`](GENERATE_FONT_ZH.md)。
 
 ## 当前限制与后续方向
 

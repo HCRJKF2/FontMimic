@@ -136,7 +136,7 @@ outputs/generated_fonts/
         └── ...
 ```
 
-See [`GENERATE_FONT_ZH.md`](GENERATE_FONT_ZH.md) for detailed export parameters, contour tuning, and troubleshooting.
+See [`GENERATE_FONT.md`](GENERATE_FONT.md) for detailed export parameters, contour tuning, and troubleshooting.
 
 ## Current limitations
 
